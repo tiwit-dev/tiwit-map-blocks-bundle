@@ -20,6 +20,7 @@ const {
 
 const {
 	TextControl,
+	TextareaControl,
 	Button,
 	Notice,
 } = wp.components
@@ -32,6 +33,7 @@ class TiwitSimpleMap extends Component {
 
 		this.changeUserAddress = this.changeUserAddress.bind( this );
 		this.getLatLongFromAddress = this.getLatLongFromAddress.bind( this );
+		this.changePopupContent = this.changePopupContent.bind( this );
 
 		this.state = {
 			map : null,
@@ -42,20 +44,7 @@ class TiwitSimpleMap extends Component {
 
 	componentDidMount(){
 
-		const { lat, lon } = this.props.attributes
-
-		let defaultAttributes = {};
-
-		if( ! lat ){
-			defaultAttributes.lat = "47.2161494"
-		}
-		if( ! lon ){
-			defaultAttributes.lon = "-1.5335951"
-		}
-
-		if( defaultAttributes ){
-			this.props.setAttributes( defaultAttributes )
-		}
+		this.displayMap()
 
 	}
 
@@ -65,7 +54,8 @@ class TiwitSimpleMap extends Component {
 		if( this.props.attributes.lat &&
 			(
 				this.props.attributes.lat !== prevProps.attributes.lat ||
-				this.props.attributes.lon !== prevProps.attributes.lon
+				this.props.attributes.lon !== prevProps.attributes.lon ||
+				this.props.attributes.popup !== prevProps.attributes.popup
 			)
 		){
 
@@ -77,23 +67,20 @@ class TiwitSimpleMap extends Component {
 
 	displayMap(){
 
-		const { map } = this.state
-		const { lat, lon } = this.props.attributes
-		const latLongObj = [ parseFloat( lat ), parseFloat( lon )]
-
+		let { map } = this.state
+		const { lat, lon, popup } = this.props.attributes
 
 		if( ! map ){
 
-			const newMap = L.map( this.props.id, {
-				center: latLongObj,
+			map = L.map( this.props.id, {
+				center: [ 47.2161494, -1.5335951 ],
 				zoom: 13
 			});
-			L.tileLayer('http://{s}.tile.openstreetmap.se/hydda/full/{z}/{x}/{y}.png').addTo( newMap );
+			L.tileLayer('http://{s}.tile.openstreetmap.se/hydda/full/{z}/{x}/{y}.png').addTo( map );
 
-			L.marker( latLongObj ).addTo( newMap );
 
 			this.setState( {
-				map: newMap
+				map: map
 			} );
 		} else {
 
@@ -104,9 +91,21 @@ class TiwitSimpleMap extends Component {
 				}
 			})
 
+		}
+
+		if( lat && lon ){
+			const latLongObj = [ parseFloat( lat ), parseFloat( lon )]
+
 			// Cet the center of the map and the new Marker
 			map.setView( latLongObj )
-			L.marker( latLongObj ).addTo( map );
+
+			// Add marker
+			const marker =L.marker( latLongObj ).addTo( map );
+
+			// Add popup
+			if( popup ){
+				marker.bindPopup(popup).openPopup();
+			}
 		}
 
 	}
@@ -116,6 +115,13 @@ class TiwitSimpleMap extends Component {
 
 		this.props.setAttributes( {
 			address: address
+		} );
+	}
+
+	changePopupContent( content ){
+
+		this.props.setAttributes( {
+			popup: content
 		} );
 	}
 
@@ -174,7 +180,7 @@ class TiwitSimpleMap extends Component {
 								isLarge
 								isBusy={ isWaitingForNominatim }
 								>
-								{__('Add marker on map')}
+								{ attributes.lat ? __('Change marker position') : __('Add marker on map') }
 							</Button>
 							{ nominatimReturnEmpty && <Notice
 									status="error"
@@ -183,6 +189,13 @@ class TiwitSimpleMap extends Component {
 								/>
 							}
 						</div>
+						{ attributes.lat && <TextareaControl
+								label={__('Popup content')}
+								value={attributes.popup}
+								onChange={this.changePopupContent}
+							/>
+						}
+
 					</InspectorControls>
 				}
 				<div id={id} style={{ height : '500px'}}/>
@@ -224,6 +237,9 @@ registerBlockType( 'tiwit-map-blocks-bundle/simple-map', {
 		},
 		lon: {
 			type: 'string',
+		},
+		popup:{
+			type: 'string'
 		}
 	},
 
