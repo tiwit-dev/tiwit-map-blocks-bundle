@@ -9,6 +9,8 @@
 import './style.scss'
 import './editor.scss'
 
+import L from 'leaflet';
+
 const { Component } = wp.element
 
 const { __ } = wp.i18n; // Import __() from wp.i18n
@@ -21,6 +23,7 @@ const {
 const {
 	TextControl,
 	TextareaControl,
+	RangeControl,
 	Button,
 	Notice,
 } = wp.components
@@ -55,7 +58,8 @@ class TiwitSimpleMap extends Component {
 			(
 				this.props.attributes.lat !== prevProps.attributes.lat ||
 				this.props.attributes.lon !== prevProps.attributes.lon ||
-				this.props.attributes.popup !== prevProps.attributes.popup
+				this.props.attributes.popup !== prevProps.attributes.popup ||
+				this.props.attributes.zoom !== prevProps.attributes.zoom
 			)
 		){
 
@@ -68,13 +72,14 @@ class TiwitSimpleMap extends Component {
 	displayMap(){
 
 		let { map } = this.state
-		const { lat, lon, popup } = this.props.attributes
+		const { lat, lon, popup, zoom } = this.props.attributes
 
+		const realZoom = zoom ? zoom : 13
 		if( ! map ){
 
 			map = L.map( this.props.id, {
 				center: [ 47.2161494, -1.5335951 ],
-				zoom: 13
+				zoom: realZoom
 			});
 			L.tileLayer('http://{s}.tile.openstreetmap.se/hydda/full/{z}/{x}/{y}.png').addTo( map );
 
@@ -98,6 +103,7 @@ class TiwitSimpleMap extends Component {
 
 			// Cet the center of the map and the new Marker
 			map.setView( latLongObj )
+			map.setZoom( realZoom )
 
 			// Add marker
 			const marker =L.marker( latLongObj ).addTo( map );
@@ -161,7 +167,7 @@ class TiwitSimpleMap extends Component {
 	}
 
 	render(){
-		const { id, className, attributes, focus } = this.props
+		const { id, className, attributes, focus, setAttributes } = this.props
 		const { isWaitingForNominatim, nominatimReturnEmpty } = this.state
 
 		return(
@@ -195,6 +201,14 @@ class TiwitSimpleMap extends Component {
 								onChange={this.changePopupContent}
 							/>
 						}
+						<RangeControl
+							label={__('Zoom')}
+							value={ attributes.zoom ? attributes.zoom : 13 }
+							onChange={ ( zoom ) => setAttributes( { zoom: zoom }) }
+							min={ 1 }
+							max={ 20 }
+						/>
+
 
 					</InspectorControls>
 				}
@@ -239,6 +253,9 @@ registerBlockType( 'tiwit-map-blocks-bundle/simple-map', {
 			type: 'string',
 		},
 		popup:{
+			type: 'string'
+		},
+		zoom:{
 			type: 'string'
 		}
 	},

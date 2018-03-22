@@ -37,11 +37,14 @@ function tiwit_map_blocks_bundle_cgb_block_assets() {
 		'1.0'
 	);
 
-	wp_enqueue_script( 'tiwit-leaflet-js',
-		'https://unpkg.com/leaflet@1.3.1/dist/leaflet.js',
-		array(),
-		'1.3.1'
+	if( ! is_admin() ){
+
+		wp_enqueue_script( 'tiwit-leaflet-js',
+			'https://unpkg.com/leaflet@1.3.1/dist/leaflet.js',
+			array(),
+			'1.3.1'
 		);
+	}
 
 }
 
