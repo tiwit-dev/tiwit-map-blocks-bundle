@@ -6,9 +6,6 @@
  */
 
 //  Import CSS.
-import './style.scss'
-import './editor.scss'
-
 import L from 'leaflet';
 
 const { Component, Fragment } = wp.element

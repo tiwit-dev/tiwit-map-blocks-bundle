@@ -5,10 +5,6 @@
  * Simple block, renders and saves the same content without any interactivity.
  */
 
-//  Import CSS.
-import './style.scss'
-import './editor.scss'
-
 import TiwitSimpleMap from './TiwitSimpleMap';
 
 const { __ } = wp.i18n; // Import __() from wp.i18n
@@ -58,7 +54,7 @@ registerBlockType( 'tiwit-map-blocks-bundle/simple-map', {
 			type: 'string'
 		},
 		zoom:{
-			type: 'string'
+			type: 'int'
 		}
 	},
 
@@ -82,9 +78,7 @@ registerBlockType( 'tiwit-map-blocks-bundle/simple-map', {
 	 */
 	save: function( props ) {
 		return (
-			<div className={ props.className }>
-				<p>Soon a map</p>
-			</div>
+			<div className={ props.className } data-map={ JSON.stringify( props.attributes)} />
 		);
 	},
 } );
